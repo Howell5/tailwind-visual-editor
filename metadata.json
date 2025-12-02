@@ -1,0 +1,5 @@
+{
+  "name": "Tailwind Visual Editor",
+  "description": "A lightweight, WYSIWYG visual editor for Tailwind CSS based HTML pages. Import, edit, style, and export with ease.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tailwind Visual Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              editor: {
+                50: '#f8fafc',
+                100: '#f1f5f9',
+                200: '#e2e8f0',
+                300: '#cbd5e1',
+                400: '#94a3b8',
+                500: '#64748b',
+                600: '#475569',
+                700: '#334155',
+                800: '#1e293b',
+                900: '#0f172a',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for the editor UI */
+      .editor-ui ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .editor-ui ::-webkit-scrollbar-track {
+        background: #f1f5f9; 
+      }
+      .editor-ui ::-webkit-scrollbar-thumb {
+        background: #cbd5e1; 
+        border-radius: 4px;
+      }
+      .editor-ui ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8; 
+      }
+      
+      /* Visual indicators for the editor canvas */
+      .visual-editor-selected {
+        outline: 2px solid #3b82f6 !important;
+        outline-offset: -2px;
+        position: relative;
+        z-index: 10;
+      }
+      
+      .visual-editor-hovered {
+        outline: 1px dashed #60a5fa !important;
+        outline-offset: -1px;
+      }
+      
+      [contenteditable="true"] {
+        outline: 2px solid #22c55e !important;
+        cursor: text !important;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "zustand": "https://aistudiocdn.com/zustand@^5.0.9"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
