@@ -5,6 +5,10 @@ export interface EditorStore {
   htmlContent: string;
   setHtmlContent: (html: string) => void;
   
+  // Head Content (Meta, Title, Custom Styles)
+  headContent: string;
+  setHeadContent: (content: string) => void;
+  
   // Body/Global Styles
   bodyClassName: string;
   setBodyClassName: (className: string) => void;

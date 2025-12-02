@@ -41,6 +41,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   htmlContent: INITIAL_HTML,
   setHtmlContent: (html) => set({ htmlContent: html }),
 
+  headContent: '',
+  setHeadContent: (content) => set({ headContent: content }),
+
   bodyClassName: INITIAL_BODY_CLASS,
   setBodyClassName: (className) => set({ bodyClassName: className }),
 

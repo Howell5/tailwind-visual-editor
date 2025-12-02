@@ -5,6 +5,7 @@ import { isTextElement } from '../utils/dom';
 export const EditorCanvas: React.FC = () => {
   const { 
     htmlContent, 
+    headContent,
     viewMode, 
     bodyClassName,
     bodyStyle,
@@ -51,7 +52,9 @@ export const EditorCanvas: React.FC = () => {
       </style>
     `;
 
-    // Inject bodyClassName and bodyStyle directly into initialization
+    // Inject headContent, bodyClassName and bodyStyle directly into initialization
+    // We add headContent BEFORE our scripts to ensure user styles load but our overrides (if any) can work,
+    // though usually user styles should take precedence.
     const content = `
       <!DOCTYPE html>
       <html>
@@ -59,6 +62,7 @@ export const EditorCanvas: React.FC = () => {
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <script src="https://cdn.tailwindcss.com"></script>
+          ${headContent}
           <script>
             // Tailwind config to match editor theme if needed
             tailwind.config = {
@@ -84,7 +88,7 @@ export const EditorCanvas: React.FC = () => {
     setMountKey(prev => prev + 1);
 
     // Give Tailwind a moment to parse classes, then we are ready
-  }, [htmlContent]); 
+  }, [htmlContent, headContent]); // Add headContent dependency
 
   // Sync Body Class Name changes from store to Iframe DOM
   useEffect(() => {

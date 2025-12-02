@@ -17,6 +17,8 @@ export const TopBar: React.FC = () => {
     viewMode, 
     setViewMode, 
     setHtmlContent, 
+    setHeadContent,
+    headContent,
     setBodyClassName,
     setBodyStyle,
     selectedElement, 
@@ -32,6 +34,17 @@ export const TopBar: React.FC = () => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(content, 'text/html');
         
+        // Extract head content
+        // We remove any existing tailwind CDN links from the import to avoid duplicates,
+        // as we inject our own in the EditorCanvas.
+        const scripts = doc.head.querySelectorAll('script');
+        scripts.forEach(script => {
+            if (script.src && script.src.includes('tailwindcss.com')) {
+                script.remove();
+            }
+        });
+        setHeadContent(doc.head.innerHTML);
+
         // Extract body attributes (classes)
         if (doc.body.className) {
             setBodyClassName(doc.body.className);
@@ -110,6 +123,7 @@ export const TopBar: React.FC = () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    ${headContent}
     <title>Exported Page</title>
 </head>
 <body class="${finalBodyClasses}" style="${finalBodyStyle}">
