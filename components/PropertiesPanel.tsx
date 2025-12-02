@@ -10,22 +10,28 @@ import {
   X,
   Trash2,
   Copy,
-  Info
+  Info,
+  Monitor
 } from 'lucide-react';
 
 export const PropertiesPanel: React.FC = () => {
-  const { selectedElement, updateSelectedElementStyle, deleteSelectedElement } = useEditorStore();
+  const { selectedElement, updateSelectedElementStyle, deleteSelectedElement, bodyClassName } = useEditorStore();
   const [activeClasses, setActiveClasses] = useState<string[]>([]);
   const [newClass, setNewClass] = useState('');
 
+  const isBody = selectedElement?.id === 'visual-editor-canvas';
+
   // Sync state with selected element
   useEffect(() => {
-    if (selectedElement) {
+    if (isBody) {
+        // If body is selected, we read from store directly or the className logic
+        setActiveClasses(bodyClassName.split(' ').filter(c => c.trim() !== ''));
+    } else if (selectedElement) {
       setActiveClasses(categorizeClasses(selectedElement.classList));
     } else {
       setActiveClasses([]);
     }
-  }, [selectedElement, selectedElement?.className]); // Depend on className to refresh when classes change
+  }, [selectedElement, selectedElement?.className, bodyClassName, isBody]); 
 
   const handleAddClass = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,13 +52,13 @@ export const PropertiesPanel: React.FC = () => {
             <Layout className="w-8 h-8 text-gray-400" />
         </div>
         <p className="font-medium">No element selected</p>
-        <p className="text-sm mt-2">Click on any element in the canvas to edit its properties.</p>
+        <p className="text-sm mt-2">Click on any element (or the page background) to edit styles.</p>
       </div>
     );
   }
 
-  const tagName = selectedElement.tagName.toLowerCase();
-  const hasText = selectedElement.childNodes.length > 0 && 
+  const tagName = isBody ? 'body' : selectedElement.tagName.toLowerCase();
+  const hasText = !isBody && selectedElement.childNodes.length > 0 && 
                  selectedElement.childNodes[0].nodeType === Node.TEXT_NODE &&
                  selectedElement.innerText.trim().length > 0;
 
@@ -62,20 +68,22 @@ export const PropertiesPanel: React.FC = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
         <div className="flex items-center gap-2">
-            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">
+            <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${isBody ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
                 {tagName}
             </span>
             <span className="text-xs text-gray-400">
-                #{selectedElement.id || 'no-id'}
+                {isBody ? 'Page Root' : `#${selectedElement.id || 'no-id'}`}
             </span>
         </div>
-        <button 
-            onClick={deleteSelectedElement}
-            className="text-gray-400 hover:text-red-500 transition-colors p-1"
-            title="Delete Element"
-        >
-            <Trash2 className="w-4 h-4" />
-        </button>
+        {!isBody && (
+            <button 
+                onClick={deleteSelectedElement}
+                className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                title="Delete Element"
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 editor-ui">
@@ -101,7 +109,7 @@ export const PropertiesPanel: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <Palette className="w-4 h-4" />
-                <span>Tailwind Classes</span>
+                <span>{isBody ? 'Body Classes' : 'Tailwind Classes'}</span>
             </div>
             <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                 {activeClasses.length}
@@ -111,7 +119,7 @@ export const PropertiesPanel: React.FC = () => {
           <form onSubmit={handleAddClass} className="relative">
             <input 
                 type="text" 
-                placeholder="Add class (e.g. text-red-500)" 
+                placeholder="Add class (e.g. bg-blue-50)" 
                 className="w-full pl-3 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                 value={newClass}
                 onChange={(e) => setNewClass(e.target.value)}
@@ -155,53 +163,77 @@ export const PropertiesPanel: React.FC = () => {
         <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <Box className="w-4 h-4" />
-                <span>Common Utilities</span>
+                <span>Quick Presets</span>
             </div>
             
             <div className="grid grid-cols-2 gap-2">
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'flex')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Flex
-                </button>
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'grid')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Grid
-                </button>
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'p-4')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Padding (sm)
-                </button>
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'p-8')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Padding (lg)
-                </button>
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'rounded-lg')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Rounded
-                </button>
-                <button 
-                    onClick={() => updateSelectedElementStyle('add', 'shadow-md')}
-                    className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
-                >
-                    Shadow
-                </button>
+                {isBody ? (
+                    // Body specific helpers
+                    <>
+                         <button 
+                            onClick={() => updateSelectedElementStyle('add', 'bg-white')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Bg White
+                        </button>
+                        <button 
+                            onClick={() => updateSelectedElementStyle('add', 'bg-slate-50')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Bg Slate
+                        </button>
+                         <button 
+                            onClick={() => updateSelectedElementStyle('add', 'font-sans')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Font Sans
+                        </button>
+                         <button 
+                            onClick={() => updateSelectedElementStyle('add', 'antialiased')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Antialiased
+                        </button>
+                    </>
+                ) : (
+                    // Generic element helpers
+                    <>
+                        <button 
+                            onClick={() => updateSelectedElementStyle('add', 'flex')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Flex
+                        </button>
+                        <button 
+                            onClick={() => updateSelectedElementStyle('add', 'grid')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Grid
+                        </button>
+                        <button 
+                            onClick={() => updateSelectedElementStyle('add', 'p-4')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Pad (sm)
+                        </button>
+                        <button 
+                            onClick={() => updateSelectedElementStyle('add', 'rounded-lg')}
+                            className="text-xs py-1.5 border border-gray-200 rounded hover:bg-blue-50 hover:border-blue-200 transition"
+                        >
+                            Rounded
+                        </button>
+                    </>
+                )}
             </div>
         </div>
         
         <div className="mt-auto bg-blue-50 p-3 rounded-lg border border-blue-100 flex gap-3 items-start">
             <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
             <p className="text-xs text-blue-700 leading-relaxed">
-                Changes are applied instantly. Use the <strong>Delete</strong> key to remove the selected element.
+                {isBody 
+                    ? "You are editing the global Body styles. These affect the entire page background and default fonts."
+                    : "Changes are applied instantly. Use the Delete key to remove the selected element."
+                }
             </p>
         </div>
 

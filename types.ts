@@ -5,6 +5,10 @@ export interface EditorStore {
   htmlContent: string;
   setHtmlContent: (html: string) => void;
   
+  // Body/Global Styles
+  bodyClassName: string;
+  setBodyClassName: (className: string) => void;
+  
   // Selection State
   selectedElement: HTMLElement | null;
   setSelectedElement: (element: HTMLElement | null) => void;

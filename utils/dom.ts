@@ -18,6 +18,8 @@ export const cleanHTMLForExport = (rootElement: HTMLElement): string => {
     }
   });
 
+  // If the root is BODY, we return innerHTML, otherwise outerHTML depending on need
+  // Usually for export we want the inner content of the body
   return clone.innerHTML;
 };
 
@@ -36,8 +38,6 @@ export const categorizeClasses = (classList: DOMTokenList) => {
  * Checks if an element is a text-editable element
  */
 export const isTextElement = (el: HTMLElement): boolean => {
-  const textTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'LI', 'BUTTON', 'LABEL', 'TD', 'TH', 'DIV'];
-  // Divs are conditionally text elements if they only contain text nodes, 
-  // but for simplicity we allow editing any of these.
+  const textTags = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'SPAN', 'A', 'LI', 'BUTTON', 'LABEL', 'TD', 'TH', 'DIV', 'B', 'I', 'STRONG', 'EM', 'SMALL'];
   return textTags.includes(el.tagName);
 };

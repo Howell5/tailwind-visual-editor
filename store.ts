@@ -1,9 +1,12 @@
 import { create } from 'zustand';
 import { EditorStore } from './types';
 
-// Initial sample content
+// Initial styles for the body (bg-gray-50 etc)
+const INITIAL_BODY_CLASS = "bg-slate-50 min-h-full font-sans text-slate-900";
+
+// Initial content
 const INITIAL_HTML = `
-<div class="max-w-4xl mx-auto p-8 text-center">
+<div class="max-w-4xl mx-auto p-8 text-center mt-10">
   <h1 class="text-4xl font-bold text-gray-900 mb-4">Welcome to Visual Editor</h1>
   <p class="text-lg text-gray-600 mb-8">
     Click any element to select it. Double-click text to edit. 
@@ -38,6 +41,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   htmlContent: INITIAL_HTML,
   setHtmlContent: (html) => set({ htmlContent: html }),
 
+  bodyClassName: INITIAL_BODY_CLASS,
+  setBodyClassName: (className) => set({ bodyClassName: className }),
+
   selectedElement: null,
   setSelectedElement: (element) => set({ selectedElement: element }),
 
@@ -48,19 +54,42 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setIsEditingText: (isEditing) => set({ isEditingText: isEditing }),
 
   updateSelectedElementStyle: (action, className) => {
-    const { selectedElement } = get();
+    const { selectedElement, bodyClassName } = get();
+    
     if (!selectedElement) return;
 
+    // Special handling for BODY element (the root of the iframe)
+    if (selectedElement.tagName === 'BODY') {
+        const currentClasses = selectedElement.className.split(' ').filter(c => c.trim() !== '');
+        let newClasses: string[] = [];
+
+        if (action === 'add') {
+            const classesToAdd = className.split(' ').filter(c => c.trim() !== '');
+            newClasses = [...new Set([...currentClasses, ...classesToAdd])];
+        } else {
+            newClasses = currentClasses.filter(c => c !== className);
+        }
+        
+        const newClassNameString = newClasses.join(' ');
+        
+        // Update DOM directly
+        selectedElement.className = newClassNameString;
+        
+        // Sync store for persistence/initialization logic
+        set({ bodyClassName: newClassNameString });
+        return;
+    }
+
+    // Standard Element Handling
     if (action === 'add') {
-      // Split by space to handle multiple classes added at once
       const classesToAdd = className.split(' ').filter(c => c.trim() !== '');
       selectedElement.classList.add(...classesToAdd);
     } else {
       selectedElement.classList.remove(className);
     }
     
-    // Trigger a re-render of the selected element state by creating a new reference
-    // This is a bit of a hack to force React to notice the DOM mutation
+    // Trigger a re-render of the selected element state by creating a new reference? 
+    // Actually, simple set works to trigger UI updates in subscribers
     set({ selectedElement: selectedElement });
   },
 
@@ -68,8 +97,11 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     const { selectedElement } = get();
     if (!selectedElement) return;
     
-    // Prevent deleting the root container if we can identify it, 
-    // but typically the editor canvas wrapper handles that.
+    if (selectedElement.tagName === 'BODY') {
+        alert("Cannot delete the page body.");
+        return;
+    }
+    
     selectedElement.remove();
     set({ selectedElement: null, isEditingText: false });
   }

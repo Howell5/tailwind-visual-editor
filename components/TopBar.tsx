@@ -6,7 +6,6 @@ import {
   Tablet, 
   Monitor, 
   Code, 
-  Eye,
   Trash2,
   FileCode
 } from 'lucide-react';
@@ -18,6 +17,7 @@ export const TopBar: React.FC = () => {
     viewMode, 
     setViewMode, 
     setHtmlContent, 
+    setBodyClassName,
     selectedElement, 
     deleteSelectedElement 
   } = useEditorStore();
@@ -25,6 +25,27 @@ export const TopBar: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importText, setImportText] = useState('');
+
+  const processImport = (content: string) => {
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(content, 'text/html');
+        
+        // Extract body attributes (classes)
+        if (doc.body.className) {
+            setBodyClassName(doc.body.className);
+        }
+        
+        // Extract inner HTML
+        if (doc.body.innerHTML) {
+            setHtmlContent(doc.body.innerHTML);
+        }
+    } catch (e) {
+        console.error("Failed to parse HTML", e);
+        // Fallback to simple set if parsing fails
+        setHtmlContent(content);
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,7 +55,7 @@ export const TopBar: React.FC = () => {
     reader.onload = (event) => {
       const content = event.target?.result as string;
       if (content) {
-        setHtmlContent(content);
+        processImport(content);
       }
     };
     reader.readAsText(file);
@@ -43,14 +64,32 @@ export const TopBar: React.FC = () => {
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
+    setShowImportModal(false);
+  };
+
+  const handlePasteImport = () => {
+    if (importText.trim()) {
+      processImport(importText);
+      setShowImportModal(false);
+      setImportText('');
+    }
   };
 
   const handleExport = () => {
-    const editorCanvas = document.getElementById('visual-editor-canvas');
-    if (!editorCanvas) return;
+    const iframe = document.getElementById('visual-editor-iframe') as HTMLIFrameElement;
+    if (!iframe || !iframe.contentDocument) {
+        alert("Editor not ready");
+        return;
+    }
 
-    const cleanHtml = cleanHTMLForExport(editorCanvas);
+    const doc = iframe.contentDocument;
     
+    // Clean the body content
+    const cleanBodyContent = cleanHTMLForExport(doc.body);
+    
+    // Get the current body classes from the live DOM
+    const finalBodyClasses = doc.body.className;
+
     const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,8 +98,8 @@ export const TopBar: React.FC = () => {
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Exported Page</title>
 </head>
-<body>
-${cleanHtml}
+<body class="${finalBodyClasses}">
+${cleanBodyContent}
 </body>
 </html>`;
 
@@ -73,14 +112,6 @@ ${cleanHtml}
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const handlePasteImport = () => {
-    if (importText.trim()) {
-      setHtmlContent(importText);
-      setShowImportModal(false);
-      setImportText('');
-    }
   };
 
   return (
@@ -124,7 +155,7 @@ ${cleanHtml}
         </div>
 
         <div className="flex items-center gap-3">
-          {selectedElement && (
+          {selectedElement && selectedElement.tagName !== 'BODY' && (
              <button
              onClick={deleteSelectedElement}
              className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm font-medium mr-2"
@@ -169,7 +200,7 @@ ${cleanHtml}
                 <label className="block text-sm font-medium text-gray-700 mb-2">Paste HTML Code</label>
                 <textarea 
                   className="w-full h-48 border border-gray-300 rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
-                  placeholder="<div class='p-4'>...</div>"
+                  placeholder="<!DOCTYPE html><html><body class='bg-gray-100'>...</body></html>"
                   value={importText}
                   onChange={(e) => setImportText(e.target.value)}
                 />
