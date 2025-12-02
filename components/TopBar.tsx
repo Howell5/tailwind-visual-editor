@@ -18,6 +18,7 @@ export const TopBar: React.FC = () => {
     setViewMode, 
     setHtmlContent, 
     setBodyClassName,
+    setBodyStyle,
     selectedElement, 
     deleteSelectedElement 
   } = useEditorStore();
@@ -34,6 +35,16 @@ export const TopBar: React.FC = () => {
         // Extract body attributes (classes)
         if (doc.body.className) {
             setBodyClassName(doc.body.className);
+        } else {
+            setBodyClassName('');
+        }
+
+        // Extract body inline styles
+        const style = doc.body.getAttribute('style');
+        if (style) {
+            setBodyStyle(style);
+        } else {
+            setBodyStyle('');
         }
         
         // Extract inner HTML
@@ -89,6 +100,9 @@ export const TopBar: React.FC = () => {
     
     // Get the current body classes from the live DOM
     const finalBodyClasses = doc.body.className;
+    
+    // Get the current body inline styles
+    const finalBodyStyle = doc.body.getAttribute('style') || '';
 
     const fullHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -98,7 +112,7 @@ export const TopBar: React.FC = () => {
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Exported Page</title>
 </head>
-<body class="${finalBodyClasses}">
+<body class="${finalBodyClasses}" style="${finalBodyStyle}">
 ${cleanBodyContent}
 </body>
 </html>`;

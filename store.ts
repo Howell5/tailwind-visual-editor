@@ -44,6 +44,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   bodyClassName: INITIAL_BODY_CLASS,
   setBodyClassName: (className) => set({ bodyClassName: className }),
 
+  bodyStyle: '',
+  setBodyStyle: (style) => set({ bodyStyle: style }),
+
   selectedElement: null,
   setSelectedElement: (element) => set({ selectedElement: element }),
 
@@ -54,7 +57,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setIsEditingText: (isEditing) => set({ isEditingText: isEditing }),
 
   updateSelectedElementStyle: (action, className) => {
-    const { selectedElement, bodyClassName } = get();
+    const { selectedElement } = get();
     
     if (!selectedElement) return;
 

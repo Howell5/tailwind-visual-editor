@@ -8,6 +8,8 @@ export interface EditorStore {
   // Body/Global Styles
   bodyClassName: string;
   setBodyClassName: (className: string) => void;
+  bodyStyle: string;
+  setBodyStyle: (style: string) => void;
   
   // Selection State
   selectedElement: HTMLElement | null;

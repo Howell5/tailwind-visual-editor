@@ -7,6 +7,7 @@ export const EditorCanvas: React.FC = () => {
     htmlContent, 
     viewMode, 
     bodyClassName,
+    bodyStyle,
     setSelectedElement, 
     setIsEditingText, 
     selectedElement,
@@ -15,6 +16,8 @@ export const EditorCanvas: React.FC = () => {
   
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
+  // Track mount version to re-bind events after doc.write
+  const [mountKey, setMountKey] = useState(0);
 
   // Initialize Iframe Content
   useEffect(() => {
@@ -24,10 +27,6 @@ export const EditorCanvas: React.FC = () => {
     const doc = iframe.contentDocument;
     if (!doc) return;
 
-    // We write the initial skeleton. 
-    // Note: We intentionally only do this once or when htmlContent *radically* changes (like import).
-    // Small edits happen via direct DOM manipulation to preserve state.
-    
     const editorStyles = `
       <style>
         /* Visual indicators injected into the iframe */
@@ -52,6 +51,7 @@ export const EditorCanvas: React.FC = () => {
       </style>
     `;
 
+    // Inject bodyClassName and bodyStyle directly into initialization
     const content = `
       <!DOCTYPE html>
       <html>
@@ -69,7 +69,7 @@ export const EditorCanvas: React.FC = () => {
           </script>
           ${editorStyles}
         </head>
-        <body class="${bodyClassName}">
+        <body class="${bodyClassName}" style="${bodyStyle}">
           ${htmlContent}
         </body>
       </html>
@@ -80,12 +80,13 @@ export const EditorCanvas: React.FC = () => {
     doc.close();
 
     setIframeLoaded(true);
+    // Increment mount key to force event re-binding
+    setMountKey(prev => prev + 1);
 
     // Give Tailwind a moment to parse classes, then we are ready
-  }, [htmlContent]); // Re-run if a new file is imported (htmlContent changes significantly)
+  }, [htmlContent]); 
 
   // Sync Body Class Name changes from store to Iframe DOM
-  // This handles when the user updates the body class via the properties panel
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !iframeLoaded) return;
@@ -93,7 +94,17 @@ export const EditorCanvas: React.FC = () => {
     if (doc && doc.body && doc.body.className !== bodyClassName) {
        doc.body.className = bodyClassName;
     }
-  }, [bodyClassName, iframeLoaded]);
+  }, [bodyClassName, iframeLoaded, mountKey]);
+
+  // Sync Body Style changes from store to Iframe DOM
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !iframeLoaded) return;
+    const doc = iframe.contentDocument;
+    if (doc && doc.body) {
+       doc.body.setAttribute('style', bodyStyle);
+    }
+  }, [bodyStyle, iframeLoaded, mountKey]);
 
   // Sync Selection Visuals (Blue Box)
   useEffect(() => {
@@ -110,16 +121,14 @@ export const EditorCanvas: React.FC = () => {
 
     // Apply new
     if (selectedElement && selectedElement.isConnected) {
-        // We must ensure the element is actually inside this iframe's document
-        // Since selectedElement is a reference to a DOM node, and that node lives in the iframe,
-        // we can just interact with it directly.
         if (selectedElement.tagName !== 'BODY') {
             selectedElement.classList.add('visual-editor-selected');
         }
     }
-  }, [selectedElement, iframeLoaded]);
+  }, [selectedElement, iframeLoaded, mountKey]);
 
   // Event Binding inside Iframe
+  // Dependent on mountKey so it runs again after doc.write
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe || !iframeLoaded) return;
@@ -212,7 +221,7 @@ export const EditorCanvas: React.FC = () => {
         events.forEach(evt => doc.removeEventListener(evt, handleInteraction));
         doc.removeEventListener('keydown', handleKeydown);
     };
-  }, [iframeLoaded, setSelectedElement, setIsEditingText, setBodyClassName]);
+  }, [iframeLoaded, mountKey, setSelectedElement, setIsEditingText, setBodyClassName]);
 
 
   // Dimensions calculation
@@ -236,7 +245,6 @@ export const EditorCanvas: React.FC = () => {
         className={`bg-white shadow-2xl transition-all duration-300 overflow-hidden relative ${viewMode !== 'desktop' ? 'border-[10px] border-gray-800 rounded-[2rem]' : ''}`}
         style={containerStyle}
       >
-        {/* Iframe acts as the sandbox */}
         <iframe 
             ref={iframeRef}
             id="visual-editor-iframe"
