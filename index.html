@@ -21,10 +21,10 @@
                 700: '#334155',
                 800: '#1e293b',
                 900: '#0f172a',
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       }
     </script>
     <style>
@@ -34,16 +34,16 @@
         height: 8px;
       }
       .editor-ui ::-webkit-scrollbar-track {
-        background: #f1f5f9; 
+        background: #f1f5f9;
       }
       .editor-ui ::-webkit-scrollbar-thumb {
-        background: #cbd5e1; 
+        background: #cbd5e1;
         border-radius: 4px;
       }
       .editor-ui ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8; 
+        background: #94a3b8;
       }
-      
+
       /* Visual indicators for the editor canvas */
       .visual-editor-selected {
         outline: 2px solid #3b82f6 !important;
@@ -51,30 +51,31 @@
         position: relative;
         z-index: 10;
       }
-      
+
       .visual-editor-hovered {
         outline: 1px dashed #60a5fa !important;
         outline-offset: -1px;
       }
-      
-      [contenteditable="true"] {
+
+      [contenteditable='true'] {
         outline: 2px solid #22c55e !important;
         cursor: text !important;
       }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "zustand": "https://aistudiocdn.com/zustand@^5.0.9"
-  }
-}
-</script>
-</head>
+    <script type="importmap">
+      {
+        "imports": {
+          "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+          "react/": "https://aistudiocdn.com/react@^19.2.0/",
+          "react": "https://aistudiocdn.com/react@^19.2.0",
+          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+          "zustand": "https://aistudiocdn.com/zustand@^5.0.9"
+        }
+      }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
